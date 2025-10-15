@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>تسجيل الدخول</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js" defer></script>
+  <script src="firebase-config.js" defer></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    .container {
+      background: #90a0fa;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      width: 320px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover { background: #0056b3; }
+    #feedback { margin-top: 10px; font-size: 0.9em; }
+    #feedback.success { color: green; }
+    #feedback.error { color: red; }
+  </style>
+</head>
+
+<body>
+
+
+  <div class="container">
+    <h2>تسجيل الدخول</h2>
+    <input type="email" id="email" placeholder="البريد الإلكتروني">
+    <input type="password" id="password" placeholder="كلمة المرور">
+    <button id="loginBtn">دخول</button>
+    <p id="feedback"></p>
+  </div>
+
+  <script>
+    // تأكد أن firebaseConfig متعرفة في firebase-config.js
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const feedback = document.getElementById('feedback');
+    const adminEmails = ["admin1@example.com", "admin2@example.com"]; // عدل حسب لستة الأدمنز
+
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!email || !password) {
+        feedback.textContent = "من فضلك املأ جميع الحقول!";
+        feedback.className = "error";
+        return;
+      }
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          if (adminEmails.includes(user.email)) {
+            feedback.textContent = "تم تسجيل الدخول بنجاح! جاري تحويلك...";
+            feedback.className = "success";
+            setTimeout(() => window.location.href = "dashboard.html", 1500);
+          } else {
+            feedback.textContent = "ليس لديك صلاحية الدخول للوحة التحكم";
+            feedback.className = "error";
+            auth.signOut();
+          }
+        })
+        .catch(err => {
+          feedback.textContent = err.message;
+          feedback.className = "error";
+        });
+    });
+  </script>
+</body>
+</html>

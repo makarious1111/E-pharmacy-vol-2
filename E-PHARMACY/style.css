@@ -1,0 +1,180 @@
+/* style.css — Modern Futuristic Pharmacy Dashboard (مصحح) */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+:root{
+  --bg-dark: #0a0f1c;
+  --bg-glass: rgba(255,255,255,0.04);
+  --accent: #00aaff;
+  --accent-strong: #00c0ff;
+  --text: #e0e6f0;
+  --text-dim: #8b9bb3;
+  --card-border: rgba(0,170,255,0.08);
+  --shadow: 0 0 25px rgba(0,170,255,0.18);
+  --blur: blur(12px); /* OK to store function in var */
+  --glass-fallback: rgba(10,15,28,0.85);
+}
+
+/* Reset / base */
+* { box-sizing: border-box; }
+html,body { height: 100%; }
+body{
+  margin:0;
+  font-family:'Poppins',sans-serif;
+  background: radial-gradient(circle at 20% 20%, #091427, #050812);
+  color: var(--text); /* استخدمت على body بدل الـ* */
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;
+}
+
+/* Navbar */
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0b0b1a;
+  padding: 10px 20px;
+}
+
+nav ul {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 15px;
+}
+
+nav a {
+  text-decoration: none;
+  color: white;
+  font-weight: 500;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+
+.logout-btn{
+  background: rgba(0,170,255,0.12);
+  padding:6px 12px;
+  border-radius:8px;
+  border:1px solid rgba(0,170,255,0.25);
+  cursor:pointer;
+}
+.logout-btn:hover{
+  background:var(--accent);
+  color:#000;
+  box-shadow: 0 0 12px var(--accent);
+}
+
+/* Main container */
+.container{
+  max-width:1200px;
+  margin: 30px auto 80px;
+  padding: 20px;
+}
+
+/* Cards */
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:18px;
+  padding:20px;
+  box-shadow: var(--shadow);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--card-border);
+  transition: transform .35s ease, box-shadow .35s ease;
+}
+.card:hover{
+  transform: translateY(-6px);
+  box-shadow: 0 8px 36px rgba(0,170,255,0.22);
+}
+.card img{ width:100%; border-radius:12px; margin-bottom:12px; }
+.card h3{ color:var(--accent); font-weight:500; margin-bottom:6px; }
+.card p{ color:var(--text-dim); font-size:.95rem; line-height:1.4; }
+
+/* Buttons */
+button.primary{
+  margin-top:12px;
+  background: linear-gradient(90deg,var(--accent),var(--accent-strong));
+  color:#000;
+  border:none;
+  border-radius:10px;
+  padding:10px 18px;
+  font-weight:600;
+  cursor:pointer;
+  transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+button.primary:hover{
+  transform:scale(1.03);
+  box-shadow:0 0 20px rgba(0,170,255,0.18);
+}
+
+/* Auth area */
+.auth-container{
+  width:320px;
+  margin: 60px auto;
+  padding:18px;
+  background: linear-gradient(180deg, rgba(17,24,39,0.92), rgba(10,15,28,0.96));
+  color:var(--text);
+  border-radius:12px;
+  box-shadow: 0 6px 24px rgba(0,170,255,0.06);
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.auth-container input{
+  padding:10px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  color:var(--text);
+  outline:none;
+}
+.auth-container input::placeholder{ color: rgba(224,230,240,0.45); }
+.auth-container button{
+  background:linear-gradient(90deg,var(--accent),var(--accent-strong));
+  border:none;
+  color:#000;
+  padding:10px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.auth-container button:hover{ opacity:.95; transform:translateY(-1px); }
+
+/* Small text helpers */
+.small{ font-size:0.85rem; color:var(--text-dim); }
+
+/* Animations */
+.fade-in{ animation: fadeIn .9s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes fadeIn{
+  from{ opacity:0; transform:translateY(10px); }
+  to{ opacity:1; transform:none; }
+}
+
+/* Focus/Accessibility */
+input:focus, button:focus, a:focus{
+  outline: 3px solid rgba(0,170,255,0.14);
+  outline-offset: 3px;
+  box-shadow: 0 0 10px rgba(0,170,255,0.08);
+}
+
+/* Scrollbar (WebKit) */
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-track{ background:#050812; border-radius:8px; }
+::-webkit-scrollbar-thumb{ background: linear-gradient(180deg,var(--accent),var(--accent-strong)); border-radius:8px; border:2px solid #050812; }
+
+/* Responsive */
+@media (max-width:900px){
+  .container{ padding:12px; margin:20px; }
+  .navbar{ padding:10px 14px; gap:10px; border-radius:10px; }
+  .auth-container{ width:90%; margin:40px auto; }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .fade-in, .card, button{ transition:none !important; animation:none !important; }
+}

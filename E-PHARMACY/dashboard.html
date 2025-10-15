@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css">
+
+  <title>لوحة التحكم — Dashboard Simulator (Dark)</title>
+  <meta name="description" content="محاكاة لوحة إدارة للصيدلية: منتجات، طلبات، عملاء، نقاط بيع وإحصاءات — Front-end only" />
+ 
+ 
+  <style>
+    :root{--bg:#0b0c0e;--panel:#0f1113;--muted:#9aa4ac;--accent:#00c3ff;--accent-2:#0fb8d6;--card:#131416;--success:#3ad29f;--danger:#ff7b7b}
+    *{box-sizing:border-box}html,body{height:100%}body{margin:0;font-family:'Cairo',system-ui,Segoe UI,Roboto,Arial;color:#e6eef6;background:linear-gradient(180deg,var(--bg),#070708)}
+    .app{display:grid;grid-template-columns:270px 1fr;min-height:100vh}
+    /* Sidebar */
+    .sidebar{background:linear-gradient(180deg,var(--panel),#0b0c0f);padding:18px;border-right:1px solid rgba(255,255,255,0.02)}
+    .brand{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+    .brand .logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;font-weight:700;color:#0b0c0e}
+    .brand h3{margin:0;font-size:1.02rem}
+    nav.menu{margin-top:12px}
+    nav.menu a{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;color:#cfefff;text-decoration:none;margin-bottom:6px}
+    nav.menu a.active, nav.menu a:hover{background:rgba(0,195,255,0.06);color:var(--accent)}
+    .small{font-size:13px;color:var(--muted)}
+    /* Topbar */
+    .topbar{background:transparent;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:center}
+    .topbar .actions{display:flex;gap:12px;align-items:center}
+    .pill{background:rgba(255,255,255,0.03);padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);cursor:pointer;color:#e6eef6}
+    .pill.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#071018;border:none}
+    /* Content */
+    .content{padding:18px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+    .card{background:var(--card);padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.02);box-shadow:0 6px 20px rgba(0,0,0,0.6)}
+    .card h4{margin:0 0 8px 0}
+    .kpi{display:flex;flex-direction:column;gap:6px}
+    .kpi .value{font-size:1.3rem;font-weight:700;color:var(--accent)}
+    /* tables */
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    thead th{background:rgba(255,255,255,0.02);padding:10px;text-align:right;color:var(--muted)}
+    tbody td{padding:10px;border-top:1px solid rgba(255,255,255,0.02);vertical-align:middle}
+    .btn{padding:6px 10px;border-radius:8px;border:none;background:rgba(255,255,255,0.03);color:#e6eef6;cursor:pointer}
+    .btn.warn{background:var(--accent);color:#071018}
+    .btn.danger{background:var(--danger);color:#111}
+    .controls{display:flex;gap:10px;align-items:center}
+    /* responsive */
+    @media (max-width:980px){ .app{grid-template-columns:1fr} .sidebar{display:none} .grid{grid-template-columns:repeat(2,1fr)} }
+    @media (max-width:600px){ .grid{grid-template-columns:1fr} .topbar{flex-direction:column;align-items:flex-start;gap:8px} }
+    /* modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:9999}
+    .modal{background:var(--card);padding:18px;border-radius:10px;width:100%;max-width:720px}
+    .form-row{display:flex;gap:10px;flex-wrap:wrap}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input,select,textarea{background:#0b0c0e;border:1px solid rgba(255,255,255,0.03);padding:10px;border-radius:8px;color:#e6eef6;width:100%}
+    .right{direction:rtl;text-align:right}
+    .muted-2{color:#98a6ad}
+    .table-actions{display:flex;gap:6px}
+    .file-input{font-size:13px}
+    .search-input{background:#0b0c0e;border:1px solid rgba(255,255,255,0.03);padding:8px;border-radius:8px;color:#e6eef6;width:260px}
+    .chart-wrap{height:220px}
+  </style>
+</head>
+<body>
+
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><div class="logo">PH</div><h3>المنصة — Admin</h3></div>
+      <div class="small muted">مرحبا، مدير النظام</div>
+      <nav class="menu" aria-label="قائمة التنقل">
+        <a href="#" class="active" data-section="dashboard">لوحة القيادة</a>
+        <a href="#" data-section="products">المنتجات</a>
+        <a href="#" data-section="orders">الطلبات</a>
+        <a href="#" data-section="customers">العملاء</a>
+        <a href="#" data-section="points">نقاط البيع</a>
+        <a href="#" data-section="reports">التقارير</a>
+        <a href="#" data-section="settings">الإعدادات</a>
+        <a href="#" id="logoutBtn">تسجيل الخروج</a>
+        <script src="nav.js"></script>
+<script src="script.js"></script>
+
+      </nav>
+      <div style="margin-top:18px" class="small muted">نسخة محاكاة — بيانات محلية فقط</div>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <div class="controls">
+          <input id="globalSearch" class="search-input" placeholder="ابحث عن منتج أو طلب أو عميل...">
+          <button id="btnImport" class="pill">استيراد JSON</button>
+          <button id="btnExport" class="pill">تصدير</button>
+        </div>
+        <div class="actions">
+          <div class="small muted">المخزن: <strong id="totalProducts">0</strong> منتج</div>
+          <button id="addProductBtn" class="pill primary">+ إضافة منتج</button>
+        </div>
+      </div>
+
+      <!-- Dashboard view -->
+      <section id="dashboard" class="view">
+        <div class="grid">
+          <div class="card kpi">
+            <h4>إجمالي المبيعات</h4>
+            <div class="value">ج.م <span id="kpiSales">0</span></div>
+            <div class="small muted">آخر 30 يوم</div>
+          </div>
+          <div class="card kpi">
+            <h4>عدد الطلبات</h4>
+            <div class="value"><span id="kpiOrders">0</span></div>
+            <div class="small muted">مجموع الطلبات</div>
+          </div>
+          <div class="card kpi">
+            <h4>العملاء</h4>
+            <div class="value"><span id="kpiCustomers">0</span></div>
+            <div class="small muted">أعضاء مسجلين</div>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <h4>مبيعات حسب الفروع</h4>
+            <div class="chart-wrap"><canvas id="branchChart"></canvas></div>
+          </div>
+          <div class="card">
+            <h4>أفضل المنتجات مبيعاً</h4>
+            <div class="chart-wrap"><canvas id="topProductsChart"></canvas></div>
+          </div>
+          <div class="card">
+            <h4>النشاط اليومي</h4>
+            <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Products view -->
+      <section id="products" class="view" style="display:none">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <h4>قائمة المنتجات</h4>
+            <div class="controls"><input id="prodFilter" class="search-input" placeholder="تصفية بالاسم أو الفئة"><button id="bulkDeleteProd" class="btn danger">حذف المحدد</button></div>
+          </div>
+          <div class="table-wrap">
+            <table id="productsTable">
+              <thead><tr><th><input type="checkbox" id="selectAllProd"></th><th>الاسم</th><th>فئة</th><th>سعر</th><th>المخزون</th><th>الفرع</th><th>إجراءات</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Orders view -->
+      <section id="orders" class="view" style="display:none">
+        <div class="card">
+          <h4>الطلبات</h4>
+          <div class="table-wrap">
+            <table id="ordersTable">
+              <thead><tr><th>رقم الطلب</th><th>الزبون</th><th>التاريخ</th><th>الحالة</th><th>الإجمالي</th><th>إجراءات</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Customers view -->
+      <section id="customers" class="view" style="display:none">
+        <div class="card">
+          <h4>العملاء</h4>
+          <div class="table-wrap">
+            <table id="customersTable">
+              <thead><tr><th>الاسم</th><th>البريد</th><th>الهاتف</th><th>طلبات</th><th>إجراءات</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Points view -->
+      <section id="points" class="view" style="display:none">
+        <div class="card">
+          <h4>نقاط البيع</h4>
+          <div class="table-wrap">
+            <table id="pointsTable">
+              <thead><tr><th>الاسم</th><th>العنوان</th><th>الهاتف</th><th>فواتير</th><th>إجمالي</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Reports view -->
+      <section id="reports" class="view" style="display:none">
+        <div class="card">
+          <h4>تصدير تقارير</h4>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button id="exportProductsBtn" class="btn">تصدير المنتجات JSON</button>
+            <button id="exportOrdersBtn" class="btn">تصدير الطلبات JSON</button>
+            <button id="exportSalesBtn" class="btn">تصدير المبيعات JSON</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Settings view -->
+      <section id="settings" class="view" style="display:none">
+        <div class="card">
+          <h4>الإعدادات</h4>
+          <div class="muted-2">خيارات بسيطة: مسح بيانات محلية، إعادة تهيئة، إعدادات توصيل واتساب (محلي)</div>
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <button id="resetData" class="btn danger">مسح كل البيانات المحلية</button>
+            <button id="seedData" class="btn">إعادة تعبئة بيانات تجريبية</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Modal overlay -->
+  <div id="modalOverlay" class="modal-overlay"><div class="modal" role="dialog" aria-modal="true" id="modalDialog"></div></div>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // ======= محاكاة بيانات محلية + تخزين في localStorage =======
+    const LS_KEYS = { PRODUCTS: 'sim_products', ORDERS: 'sim_orders', CUSTOMERS: 'sim_customers', SALES: 'sim_sales' };
+
+    // بيانات افتراضية ابتدائية
+    const DEFAULT_PRODUCTS = [
+      {id:'p1',name:'Panadol 500mg',category:'medicine',price:25,stock:120,point:'main'},
+      {id:'p2',name:'Vitamin C 1000',category:'vitamin',price:80,stock:40,point:'shobra'},
+      {id:'p3',name:'Blood Pressure Monitor',category:'device',price:1250,stock:8,point:'maadi'},
+      {id:'p4',name:'Cough Syrup 100ml',category:'syrup',price:45,stock:60,point:'main'}
+    ];
+
+    const DEFAULT_CUSTOMERS = [
+      {id:'c1',name:'أحمد محمد',email:'ahmed@example.com',phone:'01110000001'},
+      {id:'c2',name:'منى علي',email:'mona@example.com',phone:'01110000002'}
+    ];
+
+    const DEFAULT_ORDERS = [
+      {id:'o'+Date.now(),customerId:'c1',items:[{id:'p1',qty:2}],total:50,status:'مكتمل',date:Date.now()-86400000},
+    ];
+
+    const DEFAULT_SALES = [
+      {id:'s1',branch:'main',total:50,date:Date.now()-86400000},
+      {id:'s2',branch:'shobra',total:80,date:Date.now()-86400000*2}
+    ];
+
+    // Helpers: localStorage
+    function load(key, fallback){ try{ return JSON.parse(localStorage.getItem(key) || 'null') || fallback; }catch(e){ return fallback; } }
+    function save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+    // Init data if empty
+    function seedDefault(){ save(LS_KEYS.PRODUCTS, DEFAULT_PRODUCTS); save(LS_KEYS.CUSTOMERS, DEFAULT_CUSTOMERS); save(LS_KEYS.ORDERS, DEFAULT_ORDERS); save(LS_KEYS.SALES, DEFAULT_SALES); toast('تم تعبئة بيانات تجريبية'); loadAllAndRender(); }
+
+    function resetData(){ if(!confirm('هل أنت متأكد من مسح كل البيانات المحلية؟')) return; localStorage.removeItem(LS_KEYS.PRODUCTS); localStorage.removeItem(LS_KEYS.ORDERS); localStorage.removeItem(LS_KEYS.CUSTOMERS); localStorage.removeItem(LS_KEYS.SALES); toast('تم مسح البيانات'); loadAllAndRender(); }
+
+    // State
+    let PRODUCTS = load(LS_KEYS.PRODUCTS, DEFAULT_PRODUCTS.slice());
+    let ORDERS = load(LS_KEYS.ORDERS, DEFAULT_ORDERS.slice());
+    let CUSTOMERS = load(LS_KEYS.CUSTOMERS, DEFAULT_CUSTOMERS.slice());
+    let SALES = load(LS_KEYS.SALES, DEFAULT_SALES.slice());
+
+    // UI elements
+    const views = document.querySelectorAll('.view');
+    const menuLinks = document.querySelectorAll('nav.menu a[data-section]');
+    const totalProductsEl = document.getElementById('totalProducts');
+    const kpiSales = document.getElementById('kpiSales');
+    const kpiOrders = document.getElementById('kpiOrders');
+    const kpiCustomers = document.getElementById('kpiCustomers');
+
+    // Tables
+    const productsTableBody = document.querySelector('#productsTable tbody');
+    const ordersTableBody = document.querySelector('#ordersTable tbody');
+    const customersTableBody = document.querySelector('#customersTable tbody');
+    const pointsTableBody = document.querySelector('#pointsTable tbody');
+
+    // Charts
+    let branchChart, topProductsChart, dailyChart;
+
+    // Toast
+    const toastEl = document.createElement('div'); toastEl.style.position='fixed'; toastEl.style.right='18px'; toastEl.style.bottom='18px'; toastEl.style.background='#011217'; toastEl.style.color='#bff0ff'; toastEl.style.padding='10px 14px'; toastEl.style.borderRadius='8px'; toastEl.style.display='none'; toastEl.style.zIndex='99999'; document.body.appendChild(toastEl);
+    function toast(msg, t=2200){ toastEl.textContent = msg; toastEl.style.display='block'; setTimeout(()=> toastEl.style.display='none', t); }
+
+    // Navigation
+    menuLinks.forEach(a=> a.addEventListener('click', (ev)=>{ ev.preventDefault(); const sec = a.dataset.section; document.querySelector('nav.menu a.active').classList.remove('active'); a.classList.add('active'); showView(sec); }));
+    function showView(name){ views.forEach(v=> v.style.display = (v.id === name ? '' : 'none')); renderAll(); }
+
+    // Renderers
+    function renderAll(){ renderKPIs(); renderProductsTable(); renderOrdersTable(); renderCustomersTable(); renderPointsTable(); renderCharts(); saveAll(); }
+
+    function renderKPIs(){ const salesSum = SALES.reduce((s,x)=> s + (x.total||0),0); kpiSales.textContent = salesSum.toLocaleString(); kpiOrders.textContent = ORDERS.length; kpiCustomers.textContent = CUSTOMERS.length; totalProductsEl.textContent = PRODUCTS.length; }
+
+    function renderProductsTable(filter=''){ productsTableBody.innerHTML=''; const q = filter.trim().toLowerCase(); PRODUCTS.forEach(p=>{ if(q && !(p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))) return; const tr = document.createElement('tr'); tr.innerHTML = `<td><input type="checkbox" data-id="${p.id}"></td><td>${p.name}</td><td>${p.category}</td><td>${p.price}</td><td>${p.stock}</td><td>${p.point}</td><td><div class="table-actions"><button class="btn" onclick="openEditProduct('${p.id}')">تعديل</button><button class="btn danger" onclick="deleteProduct('${p.id}')">حذف</button></div></td>`; productsTableBody.appendChild(tr); }); }
+
+    function renderOrdersTable(){ ordersTableBody.innerHTML=''; ORDERS.slice().reverse().forEach(o=>{ const cust = CUSTOMERS.find(c=>c.id===o.customerId) || {name:'ضيف'}; const tr = document.createElement('tr'); tr.innerHTML = `<td>${o.id}</td><td>${cust.name}</td><td>${new Date(o.date).toLocaleString()}</td><td>${o.status}</td><td>${o.total}</td><td><div class="table-actions"><button class="btn" onclick="viewOrder('${o.id}')">عرض</button></div></td>`; ordersTableBody.appendChild(tr); }); }
+
+    function renderCustomersTable(){ customersTableBody.innerHTML=''; CUSTOMERS.forEach(c=>{ const ordersCount = ORDERS.filter(o=>o.customerId===c.id).length; const tr = document.createElement('tr'); tr.innerHTML = `<td>${c.name}</td><td>${c.email}</td><td>${c.phone}</td><td>${ordersCount}</td><td><div class="table-actions"><button class="btn" onclick="viewCustomer('${c.id}')">عرض</button></div></td>`; customersTableBody.appendChild(tr); }); }
+
+    function renderPointsTable(){ // aggregate sales by branch
+      const branches = {}; SALES.forEach(s=>{ branches[s.branch] = branches[s.branch] || {count:0,total:0}; branches[s.branch].count++; branches[s.branch].total += s.total; }); pointsTableBody.innerHTML=''; Object.entries(branches).forEach(([b,v])=>{ const tr = document.createElement('tr'); tr.innerHTML = `<td>${b}</td><td>عنوان افتراضي</td><td>0111000000</td><td>${v.count}</td><td>${v.total}</td>`; pointsTableBody.appendChild(tr); }); }
+
+    // Charts (Chart.js)
+    function renderCharts(){ // branch chart
+      const byBranch = {}; SALES.forEach(s=> byBranch[s.branch] = (byBranch[s.branch]||0) + s.total);
+      const bLabels = Object.keys(byBranch); const bVals = Object.values(byBranch);
+      if(!branchChart){ const ctx = document.getElementById('branchChart').getContext('2d'); branchChart = new Chart(ctx,{type:'doughnut',data:{labels:bLabels,datasets:[{data:bVals,backgroundColor:['#00c3ff','#0fb8d6','#3ad29f','#ffb86b']}]},options:{plugins:{legend:{position:'bottom',labels:{color:'#cfefff'}}}}}); }
+      else { branchChart.data.labels = bLabels; branchChart.data.datasets[0].data = bVals; branchChart.update(); }
+
+      // top products
+      const soldCount = {}; ORDERS.forEach(o=> o.items.forEach(it=> soldCount[it.id] = (soldCount[it.id]||0) + it.qty));
+      const top = Object.entries(soldCount).sort((a,b)=>b[1]-a[1]).slice(0,5); const tpLabels = top.map(x=> (PRODUCTS.find(p=>p.id===x[0])||{}).name || x[0]); const tpVals = top.map(x=>x[1]);
+      if(!topProductsChart){ const ctx = document.getElementById('topProductsChart').getContext('2d'); topProductsChart = new Chart(ctx,{type:'bar',data:{labels:tpLabels,datasets:[{label:'مبيعات',data:tpVals}]},options:{scales:{y:{beginAtZero:true,ticks:{color:'#cfefff'}}},plugins:{legend:{display:false},tooltip:{mode:'index'}}}}); }
+      else { topProductsChart.data.labels = tpLabels; topProductsChart.data.datasets[0].data = tpVals; topProductsChart.update(); }
+
+      // daily chart (last 7 days)
+      const daysMap = {}; for(let i=6;i>=0;i--){ const d = new Date(); d.setDate(d.getDate()-i); const key = d.toISOString().slice(0,10); daysMap[key]=0; }
+      SALES.forEach(s=>{ const k = new Date(s.date).toISOString().slice(0,10); if(daysMap[k] !== undefined) daysMap[k]+= s.total; });
+      const dLabels = Object.keys(daysMap); const dVals = Object.values(daysMap);
+      if(!dailyChart){ const ctx = document.getElementById('dailyChart').getContext('2d'); dailyChart = new Chart(ctx,{type:'line',data:{labels:dLabels,datasets:[{label:'يومي',data:dVals,fill:true,tension:0.3}]},options:{scales:{y:{ticks:{color:'#cfefff'}}},plugins:{legend:{display:false}}}}); }
+      else { dailyChart.data.labels = dLabels; dailyChart.data.datasets[0].data = dVals; dailyChart.update(); }
+    }
+
+    // CRUD: Products
+    function openEditProduct(id){ const p = PRODUCTS.find(x=>x.id===id); openModal(`<h3>تعديل المنتج</h3><div class="form-row"><div style="flex:1"><label class="right">الاسم<input id="m_name" value="${p.name}"></label></div><div style="width:140px"><label class="right">الفئة<select id="m_cat"><option value="medicine">medicine</option><option value="vitamin">vitamin</option><option value="device">device</option><option value="syrup">syrup</option></select></label></div></div><div class="form-row"><div style="width:160px"><label class="right">السعر<input id="m_price" type="number" value="${p.price}"></label></div><div style="width:160px"><label class="right">المخزون<input id="m_stock" type="number" value="${p.stock}"></label></div><div style="width:160px"><label class="right">الفرع<input id="m_point" value="${p.point}"></label></div></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button class="btn" onclick="saveEditProduct('${p.id}')">حفظ</button><button class="btn" onclick="closeModal()">إلغاء</button></div>`);
+      document.getElementById('m_cat').value = p.category;
+    }
+    function saveEditProduct(id){ const p = PRODUCTS.find(x=>x.id===id); p.name = document.getElementById('m_name').value.trim(); p.category = document.getElementById('m_cat').value; p.price = Number(document.getElementById('m_price').value)||0; p.stock = Number(document.getElementById('m_stock').value)||0; p.point = document.getElementById('m_point').value.trim()||p.point; toast('تم حفظ التعديلات'); closeModal(); renderAll(); }
+    function deleteProduct(id){ if(!confirm('حذف المنتج نهائيًا؟')) return; PRODUCTS = PRODUCTS.filter(p=>p.id!==id); toast('تم الحذف'); renderAll(); }
+
+    // Add product modal
+    document.getElementById('addProductBtn').addEventListener('click', ()=>{
+      openModal(`<h3>إضافة منتج جديد</h3><div class="form-row"><div style="flex:1"><label class="right">الاسم<input id="n_name" placeholder="اسم المنتج"></label></div><div style="width:140px"><label class="right">الفئة<select id="n_cat"><option value="medicine">medicine</option><option value="vitamin">vitamin</option><option value="device">device</option><option value="syrup">syrup</option></select></label></div></div><div class="form-row"><div style="width:160px"><label class="right">السعر<input id="n_price" type="number"></label></div><div style="width:160px"><label class="right">المخزون<input id="n_stock" type="number"></label></div><div style="width:160px"><label class="right">الفرع<input id="n_point" placeholder="main"></label></div></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button class="btn" onclick="createProduct()">إضافة</button><button class="btn" onclick="closeModal()">إلغاء</button></div>`);
+    });
+    function createProduct(){ const name = document.getElementById('n_name').value.trim(); if(!name){ alert('الاسم مطلوب'); return; } const obj = { id:'p'+Date.now(), name, category:document.getElementById('n_cat').value, price: Number(document.getElementById('n_price').value)||0, stock: Number(document.getElementById('n_stock').value)||0, point: document.getElementById('n_point').value||'main' }; PRODUCTS.push(obj); toast('تم إضافة المنتج'); closeModal(); renderAll(); }
+
+    // Orders view actions
+    function viewOrder(id){ const o = ORDERS.find(x=>x.id===id); openModal('<h3>تفاصيل الطلب</h3><pre>'+JSON.stringify(o,null,2)+'</pre><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px"><button class="btn" onclick="closeModal()">إغلاق</button></div>'); }
+
+    // Customer view
+    function viewCustomer(id){ const c = CUSTOMERS.find(x=>x.id===id); const orders = ORDERS.filter(o=>o.customerId===id); openModal(`<h3>عميل: ${c.name}</h3><div class="small muted">${c.email} • ${c.phone}</div><h4 style="margin-top:12px">الطلبات (${orders.length})</h4><pre>${JSON.stringify(orders, null, 2)}</pre><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px"><button class="btn" onclick="closeModal()">إغلاق</button></div>`); }
+
+    // Modal helpers
+    const modalOverlay = document.getElementById('modalOverlay'); const modalDialog = document.getElementById('modalDialog');
+    function openModal(html){ modalDialog.innerHTML = html; modalOverlay.style.display = 'flex'; }
+    function closeModal(){ modalOverlay.style.display='none'; modalDialog.innerHTML=''; }
+    modalOverlay.addEventListener('click', (e)=>{ if(e.target===modalOverlay) closeModal(); });
+
+    // Delete selected products
+    document.getElementById('bulkDeleteProd').addEventListener('click', ()=>{
+      const boxes = Array.from(document.querySelectorAll('#productsTable tbody input[type="checkbox"]:checked')); if(boxes.length===0){ alert('اختر منتجات أولاً'); return; }
+      if(!confirm('حذف المنتجات المحددة؟')) return; const ids = boxes.map(b=> b.dataset.id); PRODUCTS = PRODUCTS.filter(p=> !ids.includes(p.id)); toast('تم الحذف'); renderAll();
+    });
+    document.getElementById('selectAllProd').addEventListener('change', (e)=>{ document.querySelectorAll('#productsTable tbody input[type="checkbox"]').forEach(cb=> cb.checked = e.target.checked); });
+
+    // View order / customer already
+    window.viewOrder = viewOrder; window.viewCustomer = viewCustomer; window.openEditProduct = openEditProduct; window.saveEditProduct = saveEditProduct; window.deleteProduct = deleteProduct; window.createProduct = createProduct; // expose for inline onclick
+
+    // Import/Export
+    document.getElementById('btnExport').addEventListener('click', ()=>{ const blob = new Blob([JSON.stringify({products:PRODUCTS,orders:ORDERS,customers:CUSTOMERS,sales:SALES},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='dashboard_export_'+Date.now()+'.json'; a.click(); toast('تم إنشاء ملف التصدير'); });
+    document.getElementById('btnImport').addEventListener('click', ()=>{ const inp = document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.addEventListener('change', (e)=>{ const f=e.target.files[0]; const r=new FileReader(); r.onload=()=>{ try{ const data = JSON.parse(r.result); if(data.products) PRODUCTS = data.products; if(data.orders) ORDERS = data.orders; if(data.customers) CUSTOMERS = data.customers; if(data.sales) SALES = data.sales; saveAll(); loadAllAndRender(); toast('تم استيراد البيانات'); }catch(err){ alert('خطأ في الملف'); } }; r.readAsText(f); }); inp.click(); });
+
+    // Exports
+    document.getElementById('exportProductsBtn').addEventListener('click', ()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(PRODUCTS,null,2)],[{type:'application/json'}])); a.download='products_'+Date.now()+'.json'; a.click(); toast('تم تصدير المنتجات'); });
+    document.getElementById('exportOrdersBtn').addEventListener('click', ()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(ORDERS,null,2)],[{type:'application/json'}])); a.download='orders_'+Date.now()+'.json'; a.click(); toast('تم تصدير الطلبات'); });
+    document.getElementById('exportSalesBtn').addEventListener('click', ()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(SALES,null,2)],[{type:'application/json'}])); a.download='sales_'+Date.now()+'.json'; a.click(); toast('تم تصدير المبيعات'); });
+
+    // Reset / Seed buttons
+    document.getElementById('resetData').addEventListener('click', resetData);
+    document.getElementById('seedData').addEventListener('click', seedDefault);
+
+    // Global search & filters
+    document.getElementById('globalSearch').addEventListener('input', (e)=>{ const q=e.target.value.toLowerCase(); if(q.length<1){ renderAll(); return; } // filter products, orders, customers
+      renderProductsTable(q); renderOrdersTable(); renderCustomersTable(); });
+    document.getElementById('prodFilter').addEventListener('input', (e)=>{ renderProductsTable(e.target.value); });
+
+    // Save & load all
+    function saveAll(){ save(LS_KEYS.PRODUCTS, PRODUCTS); save(LS_KEYS.ORDERS, ORDERS); save(LS_KEYS.CUSTOMERS, CUSTOMERS); save(LS_KEYS.SALES, SALES); }
+    function loadAllAndRender(){ PRODUCTS = load(LS_KEYS.PRODUCTS, DEFAULT_PRODUCTS.slice()); ORDERS = load(LS_KEYS.ORDERS, DEFAULT_ORDERS.slice()); CUSTOMERS = load(LS_KEYS.CUSTOMERS, DEFAULT_CUSTOMERS.slice()); SALES = load(LS_KEYS.SALES, DEFAULT_SALES.slice()); renderAll(); }
+
+    // Logout handler
+    document.getElementById('logoutBtn').addEventListener('click', ()=>{ if(confirm('تسجيل خروج؟')) location.href='login.html'; });
+
+    // initial render
+    loadAllAndRender(); showView('dashboard');
+  </script>
+  <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// التحقق من حالة المستخدم
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  const userRef = doc(db, "users", user.uid);
+  const userDoc = await getDoc(userRef);
+
+  if (!userDoc.exists() || userDoc.data().role !== "admin") {
+    alert("غير مصرح لك بالدخول!");
+    window.location.href = "login.html";
+  }
+});
+
+// تسجيل الخروج
+document.getElementById("logoutBtn")?.addEventListener("click", () => {
+  signOut(auth).then(() => {
+    window.location.href = "login.html";
+  });
+});
+</script>
+
+</body>
+<div id="nav"></div>
+<h1>Dashboard Admin</h1>
+<button id="logoutBtn">Logout</button>
+<input id="title" placeholder="Title">
+<input id="value" placeholder="Value">
+<button id="addBtn">Add</button>
+<div id="dashboardContent"></div>
+
+<script src="firebase.js"></script>
+<script>
+fetch('nav.html').then(r=>r.text()).then(d=>document.getElementById('nav').innerHTML=d);
+
+// حماية الصفحة
+auth.onAuthStateChanged(user=>{
+  if(!user || !adminEmails.includes(user.email)){
+    window.location.href="login.html";
+  } else {
+    db.collection("dashboardData").onSnapshot(snapshot=>{
+      const div = document.getElementById("dashboardContent");
+      div.innerHTML="";
+      snapshot.forEach(doc=>{
+        const data = doc.data();
+        div.innerHTML += `<div>${data.title}: ${data.value}</div>`;
+      });
+    });
+  }
+});
+
+// إضافة بيانات
+document.getElementById("addBtn").onclick = () => {
+  const title = document.getElementById("title").value;
+  const value = document.getElementById("value").value;
+  if(title && value) db.collection("dashboardData").add({title,value});
+  document.getElementById("title").value="";
+  document.getElementById("value").value="";
+};
+
+// Logout
+document.getElementById("logoutBtn").onclick = () => {
+  auth.signOut().then(()=>window.location.href="login.html");
+};
+</script>
+</html>
